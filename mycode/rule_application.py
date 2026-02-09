@@ -36,7 +36,10 @@ def filter_rules(rules_dict, min_conf, min_body_supp, rule_lengths):
 
     return new_rules_dict
 
-def get_window_edges(all_data, test_query_ts, learn_edges, window=-1, first_test_query_ts=0): #modified eval_paper_authors: added first_test_query_ts for validation set usage
+
+def get_window_edges(
+    all_data, test_query_ts, learn_edges, window=-1, first_test_query_ts=0
+):  # modified eval_paper_authors: added first_test_query_ts for validation set usage
     """
     Get the edges in the data (for rule application) that occur in the specified time window.
     If window is 0, all edges before the test query timestamp are included.
@@ -58,24 +61,29 @@ def get_window_edges(all_data, test_query_ts, learn_edges, window=-1, first_test
 
     if window > 0:
         mask = (all_data[:, 3] < test_query_ts) * (
-            all_data[:, 3] >= test_query_ts - window 
+            all_data[:, 3] >= test_query_ts - window
         )
         window_edges = store_edges(all_data[mask])
     elif window == 0:
-        mask = all_data[:, 3] < test_query_ts #!!! 
-        window_edges = store_edges(all_data[mask]) 
+        mask = all_data[:, 3] < test_query_ts  #!!!
+        window_edges = store_edges(all_data[mask])
     elif window == -1:
         window_edges = learn_edges
-    elif window == -2: #modified eval_paper_authors: added this option
-        mask = all_data[:, 3] < first_test_query_ts # all edges at timestep smaller then the test queries. meaning all from train and valid set
-        window_edges = store_edges(all_data[mask])  
-    elif window == -200: #modified eval_paper_authors: added this option
+    elif window == -2:  # modified eval_paper_authors: added this option
+        mask = (
+            all_data[:, 3] < first_test_query_ts
+        )  # all edges at timestep smaller then the test queries. meaning all from train and valid set
+        window_edges = store_edges(all_data[mask])
+    elif window == -200:  # modified eval_paper_authors: added this option
         abswindow = 200
         mask = (all_data[:, 3] < first_test_query_ts) * (
-            all_data[:, 3] >= first_test_query_ts - abswindow  # all edges at timestep smaller than the test queries - 200
+            all_data[:, 3]
+            >= first_test_query_ts
+            - abswindow  # all edges at timestep smaller than the test queries - 200
         )
         window_edges = store_edges(all_data[mask])
     return window_edges
+
 
 # def get_window_edges(all_data, test_query_ts, learn_edges, window=-1):
 #     """
@@ -147,7 +155,7 @@ def match_acyclic_body_relations(rule, edges, test_query_sub):
 
         walk_edges.append(
             np.hstack((head_edges[:, 0:1], head_edges[:, 2:4]))
-          )  # [sub, obj, ts]
+        )  # [sub, obj, ts]
         cur_targets = np.array(list(set(walk_edges[1][:, 1])))
 
         try:
@@ -166,6 +174,7 @@ def match_acyclic_body_relations(rule, edges, test_query_sub):
 
     # print("walk_edges",walk_edges)
     return walk_edges
+
 
 def match_body_relations(rule, edges, test_query_sub):
     """
@@ -259,6 +268,7 @@ def match_body_relations_complete(rule, edges, test_query_sub):
 
     return walk_edges
 
+
 def get_walks(rule, walk_edges):
     """
     Get walks for a given rule. Take the time constraints into account.
@@ -276,7 +286,7 @@ def get_walks(rule, walk_edges):
     df = pd.DataFrame(
         walk_edges[0],
         columns=["entity_" + str(0), "entity_" + str(1), "timestamp_" + str(0)],
-        dtype=np.uint16,
+        dtype=np.uint32,
     )  # Change type if necessary for better memory efficiency
     if not rule["var_constraints"]:
         del df["entity_" + str(0)]
@@ -287,7 +297,7 @@ def get_walks(rule, walk_edges):
         df = pd.DataFrame(
             walk_edges[i],
             columns=["entity_" + str(i), "entity_" + str(i + 1), "timestamp_" + str(i)],
-            dtype=np.uint16,
+            dtype=np.uint32,
         )  # Change type if necessary
         df_edges.append(df)
         df = df[0:0]
@@ -297,7 +307,8 @@ def get_walks(rule, walk_edges):
     for i in range(1, len(df_edges)):
         rule_walks = pd.merge(rule_walks, df_edges[i], on=["entity_" + str(i)])
         rule_walks = rule_walks[
-            rule_walks["timestamp_" + str(i - 1)] <= rule_walks["timestamp_" + str(i)] + globals.delta
+            rule_walks["timestamp_" + str(i - 1)]
+            <= rule_walks["timestamp_" + str(i)] + globals.delta
         ]
         if not rule["var_constraints"]:
             del rule_walks["entity_" + str(i)]
@@ -307,6 +318,7 @@ def get_walks(rule, walk_edges):
         del rule_walks["timestamp_" + str(i)]
 
     return rule_walks
+
 
 def get_acyclic_walks(rule, walk_edges):
     """
@@ -325,7 +337,7 @@ def get_acyclic_walks(rule, walk_edges):
     df = pd.DataFrame(
         walk_edges[0],
         columns=["entity_" + str(0), "entity_" + str(1), "timestamp_" + str(0)],
-        dtype=np.uint16,
+        dtype=np.uint32,
     )  # Change type if necessary for better memory efficiency
     if not rule["var_constraints"]:
         del df["entity_" + str(0)]
@@ -336,7 +348,7 @@ def get_acyclic_walks(rule, walk_edges):
         df = pd.DataFrame(
             walk_edges[i],
             columns=["entity_" + str(i), "entity_" + str(i + 1), "timestamp_" + str(i)],
-            dtype=np.uint16,
+            dtype=np.uint32,
         )  # Change type if necessary
         df_edges.append(df)
         df = df[0:0]
@@ -347,7 +359,8 @@ def get_acyclic_walks(rule, walk_edges):
         # print("rule_walksPRE",rule_walks)
         rule_walks = pd.merge(rule_walks, df_edges[i], on=["entity_" + str(i)])
         rule_walks = rule_walks[
-            rule_walks["timestamp_" + str(i - 1)] <= rule_walks["timestamp_" + str(i)] + globals.delta
+            rule_walks["timestamp_" + str(i - 1)]
+            <= rule_walks["timestamp_" + str(i)] + globals.delta
         ]
         # print("rule_walksPOST",rule_walks)
         if not rule["var_constraints"] and i != 2:
@@ -381,7 +394,7 @@ def get_walks_complete(rule, walk_edges):
             "entity_" + str(1),
             "timestamp_" + str(0),
         ],
-        dtype=np.uint16,
+        dtype=np.uint32,
     )  # Change type if necessary for better memory efficiency
     df_edges.append(df)
 
@@ -394,7 +407,7 @@ def get_walks_complete(rule, walk_edges):
                 "entity_" + str(i + 1),
                 "timestamp_" + str(i),
             ],
-            dtype=np.uint16,
+            dtype=np.uint32,
         )  # Change type if necessary
         df_edges.append(df)
 
@@ -402,7 +415,8 @@ def get_walks_complete(rule, walk_edges):
     for i in range(1, len(df_edges)):
         rule_walks = pd.merge(rule_walks, df_edges[i], on=["entity_" + str(i)])
         rule_walks = rule_walks[
-            rule_walks["timestamp_" + str(i - 1)] <= rule_walks["timestamp_" + str(i)] + globals.delta
+            rule_walks["timestamp_" + str(i - 1)]
+            <= rule_walks["timestamp_" + str(i)] + globals.delta
         ]
 
     return rule_walks
@@ -453,9 +467,9 @@ def get_candidates(
     max_entity = "entity_" + str(len(rule["body_rels"]))
 
     if "rule_type" in rule and rule["rule_type"] == "acyclic":
-        max_entity = "entity_" + str(len(rule["body_rels"])-1)
+        max_entity = "entity_" + str(len(rule["body_rels"]) - 1)
         # print(rule_walks)
-    
+
     cands = set(rule_walks[max_entity])
 
     for cand in cands:
