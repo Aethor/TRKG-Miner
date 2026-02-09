@@ -96,7 +96,8 @@ def apply_rules(i, num_queries):
 
     it_start = time.time()
     eval_paper_authors_logging_dict = {} #added eval_paper_authors for logging
-    for j in test_queries_idx:
+    for local_index, j in enumerate(test_queries_idx):
+        print(f"applying rules for query {j} ({local_index}/{len(test_queries_idx)})")
         test_query = test_data[j]
         cands_dict = [dict() for _ in range(len(args))]
 
