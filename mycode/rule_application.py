@@ -151,7 +151,7 @@ def match_acyclic_body_relations(rule, edges, test_query_sub):
             ]  # [sub, obj, ts]
             # cur_targets = np.array(list(set(walk_edges[0][:, 1])))
         except KeyError:
-            walk_edges.append([])
+            walk_edges = [[]]
 
         walk_edges.append(
             np.hstack((head_edges[:, 0:1], head_edges[:, 2:4]))
