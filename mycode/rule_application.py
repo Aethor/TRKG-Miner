@@ -74,12 +74,11 @@ def get_window_edges(
             all_data[:, 3] < first_test_query_ts
         )  # all edges at timestep smaller then the test queries. meaning all from train and valid set
         window_edges = store_edges(all_data[mask])
-    elif window == -200:  # modified eval_paper_authors: added this option
-        abswindow = 200
+    elif window < -2:  # modified eval_paper_authors: added this
+        # option all edges at timestep smaller than the test queries -
+        # abs(window)
         mask = (all_data[:, 3] < first_test_query_ts) * (
-            all_data[:, 3]
-            >= first_test_query_ts
-            - abswindow  # all edges at timestep smaller than the test queries - 200
+            all_data[:, 3] >= first_test_query_ts - abs(window)
         )
         window_edges = store_edges(all_data[mask])
     return window_edges
